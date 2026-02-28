@@ -1,0 +1,35 @@
+Backend
+- NestJS modules: auth, users, blogs, likes, comments, public, common
+- Auth: JWT strategy, guard, DTO validation, refresh via HttpOnly cookie
+- Blogs: owner-only CRUD; unique slug; publish triggers BullMQ job
+- Public: feed optimized via include and _count; transactional pagination stats
+- Likes: unique (userId, blogId); returns updated counts
+- Comments: sorted newest first; includes author info; indexed fields
+- Common: PrismaService; QueueModule with Redis; SummaryWorker logs events
+- Cross-cutting: ValidationPipe, Helmet, CORS, Throttler, Pino logging
+
+Frontend
+- App Router pages: feed, public/[slug], dashboard, login, register
+- Components: BlogCard, LikeButton (optimistic), CommentItem, Pagination
+- CommentsSection client component fetches and posts without reload
+- lib/api.ts wraps fetch; lib/auth.ts manages accessToken in localStorage
+
+Data model
+- User, Blog, Like, Comment per Prisma schema; cascade deletes
+- Indexes: Comment.blogId, Comment.createdAt; unique constraints for email, slug, like pair
+
+Queues
+- Summary generation worker; job event logging; connection via REDIS_URL
+
+Security
+- DTO validation; helmet; CORS; JWT guard; ownership enforcement
+- Do not expose sensitive fields; consistent 403/404 behavior
+
+Deployment
+- Backend Dockerfile builds and runs dist; prisma generate at build stage
+- Env vars documented; migrate commands via scripts
+
+Scaling notes
+- Cache feed with Redis; invalidate on publish/update
+- Horizontal scaling across stateless pods; read replicas for heavy reads
+- Use CDN for frontend; queue workers for async tasks
